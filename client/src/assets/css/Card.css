@@ -1,0 +1,70 @@
+.Card {
+    border-radius: 8px;
+    width: 80%;
+    height: 35%;
+    box-shadow: 0 22px 44px 0 #e7e7eb;
+}
+
+i {
+    cursor: pointer;
+}
+
+.input-container {
+    background-color: #e5e5e5;
+    width: 100%;
+    height: 75%;
+    display: flex;
+    justify-content: center;
+}
+
+.input-bot-container {
+    width: 50%;
+    height: 100%;
+    /* border: 1px solid black; */
+    display: flex;
+}
+
+.input-audio-bot {
+    width: 40%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.input-text-bot {
+    width: 60%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+textarea {
+    width: 80%;
+    height: 60%;
+    resize: none;
+}
+
+.input-customer-container {
+    width: 50%;
+    height: 100%;
+    /* border: 1px solid black; */
+    display: flex;
+}
+
+.input-audio-customer {
+    width: 40%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.input-text-customer {
+    width: 60%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
