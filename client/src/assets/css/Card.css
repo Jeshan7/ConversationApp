@@ -1,7 +1,7 @@
 .Card {
     border-radius: 8px;
     width: 80%;
-    height: 35%;
+    height: 200px;
     box-shadow: 0 22px 44px 0 #e7e7eb;
     margin-top: 5%;
 }
