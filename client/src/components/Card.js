@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import '../assets/css/Card.css';
 import MicRecorder from 'mic-recorder-to-mp3';
 import { storage } from '../utils/firebaseConfig';
+import fire from '../utils/firebaseConfig';
 
 class Card extends Component {
     constructor(props) {
@@ -19,7 +20,6 @@ class Card extends Component {
     recorder = new MicRecorder({ bitRate: 128 })
 
     recordBotStart = () => {
-        console.log("ass", this.botAudio)
         if (this.state.isBlocked) {
             console.log("Permission denied");
         } else {
@@ -34,8 +34,7 @@ class Card extends Component {
 
     recordBotStop = () => {
         this.recorder.stop().getMp3().then(([buffer, blob]) => {
-            this.setState({ isRecordingBot: false })
-            console.log("sa", blob)
+            this.setState({ isRecordingBot: false });
             const file = new File(buffer, 'audio.mp3', {
                 type: blob.type,
                 lastModified: Date.now()
@@ -73,11 +72,11 @@ class Card extends Component {
             });
 
             const player = new Audio(URL.createObjectURL(file));
-            
+
             this.customerAudio = buffer;
             player.controls = true;
             player.play();
-            
+
         }).catch((e) => {
             alert('We could not retrieve your message');
             console.log(e);
@@ -87,12 +86,11 @@ class Card extends Component {
     combineAudio = () => {
         if (this.botAudio && this.customerAudio) {
             var x = this.botAudio.concat(this.customerAudio)
-            const file = new File(x, 'audio.mp3', {
+            const file = new File(x, 'recording.mp3', {
                 type: "audio/mp3",
                 lastModified: Date.now()
             });
             this.finalAudio = file;
-            
             const player = new Audio(URL.createObjectURL(file));
         } else {
             console.log("No Recording")
@@ -101,10 +99,37 @@ class Card extends Component {
 
     uploadAudio = () => {
         if (this.finalAudio) {
-            storage.ref(`audio/${this.finalAudio.name}`).put(this.finalAudio);
+            let fileName = this.props.index + "-" + this.finalAudio.name;
+            storage.ref(`audio/${fileName}`).put(this.finalAudio);
+            console.log("done")
         } else {
             console.log("no file")
         }
+    }
+
+    deleteCard = () => {
+        fire
+            .firestore()
+            .collection('conversation-cards')
+            .doc(this.props.index)
+            .delete()
+            .then(() => {
+                console.log("deleted")
+            }).catch((err) => {
+                console.log("error")
+            })
+    }
+    
+    downloadRecording = (key) => {
+        let fileName = key + "-recording.mp3";
+        storage.ref().child(`audio/${fileName}`).getDownloadURL().then(function(url) {
+           console.log("aa", url)
+        })
+    }
+    
+    playRecording = () => {
+        const player = new Audio(URL.createObjectURL(this.finalAudio));
+        player.play()
     }
 
     render() {
@@ -136,6 +161,9 @@ class Card extends Component {
 
                     <button onClick={this.combineAudio}>Combine</button>
                     <button onClick={this.uploadAudio}>Upload</button>
+                    <button onClick={this.deleteCard}>Delete</button>
+                    <button onClick={this.playRecording}>Play</button>
+                    <button onClick={() => this.downloadRecording(this.props.index)}>Download</button>
                 </div>
             </div>
         );

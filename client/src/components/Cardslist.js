@@ -2,10 +2,14 @@ import React from 'react';
 import '../assets/css/Dashboard.css';
 import Card from './Card';
 
-const Cardslist = () => {
+const Cardslist = (props) => {
     return (
         <div className="Cardslist">
-            <Card />
+            {props.cards.map((card, index) => {
+              return <Card key={card.key} index={card.key}/>
+            })
+            }
+            
         </div>
     );
 }

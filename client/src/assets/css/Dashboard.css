@@ -30,7 +30,7 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    /* justify-conte */
     align-items: center;
     box-shadow: 0 22px 44px 0 #e7e7eb;
 }
