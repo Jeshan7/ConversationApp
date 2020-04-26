@@ -101,13 +101,87 @@ class Dashboard extends Component {
             })
         })
     }
+
+    stitchRecordings = () => {
+        var arr = [];
+        var self = this;
+        storage.ref().root.child('snippet-recordings').listAll().then((a) => {
+            // var abc = a.items.length;
+            
+            a.items.map((d) => {
+                // console.log("sas", d.location.path)
+                let s = d.location.path.split("/")
+                // console.log("saaaaa", s[1]);
+                let x = s[1];
+                storage.ref().child(`snippet-recordings/${x}`).getDownloadURL().then(function (url) {
+                    arr.push(url);
+                    if(arr.length == a.items.length) {
+                        // arr.map((item) => {
+                            let q = arr
+                            
+                            self.audio
+                                .fetchAudio(...arr)
+                                .then(buffers => {
+                                    let mergedFiles = self.audio.concatAudio(buffers)
+                                    let mergedMp3 = self.audio.export(mergedFiles, "audio/mp3")
+                                    // let fileName = id + "-snippet-recording.mp3";
+                                    console.log(mergedMp3, "ass")
+                                    self.audio.download(mergedMp3.blob)
+                                    // storage.ref(`snippet-recordings/${fileName}`).put(mergedMp3.blob);
+                                })
+                                .catch(error => {
+                                    throw new Error(error);
+                                });
+                        // })  
+                    }
+                })
+                    .catch(error => {
+                        throw new Error(error);
+                    });
+            })
+            // if (arr.length > 0) {
+            //     arr.map((item) => {
+            //         self.audio
+            //             .fetchAudio(item[0], item[1])
+            //             .then(buffers => {
+            //                 let mergedFiles = self.audio.concatAudio(buffers)
+            //                 let mergedMp3 = self.audio.export(mergedFiles, "audio/mp3")
+            //                 // let fileName = id + "-snippet-recording.mp3";
+            //                 console.log(mergedMp3, "ass")
+            //                 // storage.ref(`snippet-recordings/${fileName}`).put(mergedMp3.blob);
+            //             })
+            //             .catch(error => {
+            //                 throw new Error(error);
+            //             });
+            //     })
+            // }
+        });
+
+        // arr.map((item) => {
+        //     console.log("hello")
+        //     self.audio
+        //         .fetchAudio(arr[0],arr[1])
+        //         .then(buffers => {
+        //             let mergedFiles = self.audio.concatAudio(buffers)
+        //             let mergedMp3 = self.audio.export(mergedFiles, "audio/mp3")
+        //             // let fileName = id + "-snippet-recording.mp3";
+        //             console.log(mergedMp3, "ass")
+        //             // storage.ref(`snippet-recordings/${fileName}`).put(mergedMp3.blob);
+        //         })
+        //         .catch(error => {
+        //             throw new Error(error);
+        //         });
+        // })
+    }
+
     render() {
         return (
             <div className="Dashboard">
                 <div className="options-container">
                     <div className="options">
                         <button onClick={this.addConversation}>Add</button >
-                        <button onClick={this.abc}>Listen</button>
+                        <button onClick={this.stitchRecordings}>Listen</button>
+                        <button>Preview</button>
                         <button>Download</button>
                     </div>
                 </div>

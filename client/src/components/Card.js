@@ -114,19 +114,31 @@ class Card extends Component {
     }
 
     deleteCard = () => {
+        var a = this.props.index;
         fire
             .firestore()
             .collection('conversation-snippets')
-            .doc(this.props.index)
+            .doc(a)
             .delete()
             .then(() => {
-                // let fileName = this.props.index + "-recording.mp3";
-                // storage.ref().child(`audio/${fileName}`).delete().then(function () {
-                //     console.log("ssss deleted")
-                // }).catch(function (error) {
-                //     console.log('error occured')
-                // });
-                console.log("deleted")
+                let fileName1 = a + "-bot-recording.mp3";
+
+                storage.ref().child(`bot-recordings/${fileName1}`).delete().then(function () {
+                    let fileName2 = a + "-customer-recording.mp3";
+                    console.log("filename", fileName2)
+                    storage.ref().child(`customer-recordings/${fileName2}`).delete().then(function () {
+                        let fileName3 = a + "-snippet-recording.mp3";
+                        storage.ref().child(`snippet-recordings/${fileName3}`).delete().then(function () {
+                            console.log("Deletedeleted")
+                        }).catch(function (error) {
+                            console.log('error occured')
+                        });
+                    }).catch(function (error) {
+                        console.log('error occured')
+                    });
+                }).catch(function (error) {
+                    console.log('error occured')
+                });
             }).catch((err) => {
                 console.log("error")
             })
@@ -181,7 +193,7 @@ class Card extends Component {
             this.setState({ botTextInput: e.target.value })
             this.botAudio = null;
             console.log("recording deleted as text has been changed")
-        } else {
+        } else if (param === "Customer") {
             this.setState({ customerTextInput: e.target.value })
             this.customerAudio = null;
             console.log("recording deleted as text has been changed")
@@ -229,12 +241,14 @@ class Card extends Component {
             if (!this.props.data.botRecording && param === "Bot") {
                 this.uploadToDatabase(convertToMp3(this.botAudio), this.props.index, "Bot")
                 fire.firestore().collection('/conversation-snippets').doc(this.props.index).update({
-                    botRecording: true
+                    botRecording: true,
+                    botTextInput: this.state.botTextInput
                 })
             } else if (!this.props.data.customerRecording && param === "Customer") {
                 this.uploadToDatabase(convertToMp3(this.customerAudio), this.props.index, "Customer")
                 fire.firestore().collection('/conversation-snippets').doc(this.props.index).update({
-                    customerRecording: true
+                    customerRecording: true,
+                    customerTextInput: this.state.customerTextInput
                 })
             } else {
                 console.log("no recording")
@@ -255,7 +269,11 @@ class Card extends Component {
                             <button onClick={() => this.sendData("Bot")}>Send</button>
                         </div>
                         <div className="input-text-bot">
-                            <textarea type="text" onChange={(e) => this.handleTextInput("Bot", e)} name="bot" />
+                            {!this.props.data.botTextInput
+                                ? <input type="text"
+                                    onChange={(e) => this.handleTextInput("Bot", e)}
+                                    name="bot" />
+                                : <p>{this.props.data.botTextInput}</p>}
                         </div>
                     </div>
                     <div className="input-customer-container">
@@ -267,7 +285,11 @@ class Card extends Component {
                             <button onClick={() => this.sendData("Customer")}>Send</button>
                         </div>
                         <div className="input-text-customer">
-                            <textarea type="text" onChange={(e) => this.handleTextInput("Customer", e)} name="customer" />
+                            {!this.props.data.customerTextInput
+                                ? <input type="text"
+                                    onChange={(e) => this.handleTextInput("Customer", e)}
+                                    name="customer" />
+                                : <p>{this.props.data.customerTextInput}</p>}
                         </div>
                     </div>
                 </div>
@@ -276,8 +298,8 @@ class Card extends Component {
                     {/* <button onClick={this.combineAudio}>Combine</button> */}
                     {/* <button onClick={this.uploadAudio}>Upload</button> */}
                     <button onClick={this.deleteCard}>Delete</button>
-                    <button onClick={this.playRecording}>Play</button>
-                    <button onClick={() => this.downloadRecording(this.props.index)}>Download</button>
+                    {/* <button onClick={this.playRecording}>Play</button>
+                    <button onClick={() => this.downloadRecording(this.props.index)}>Download</button> */}
                 </div>
             </div>
         );
