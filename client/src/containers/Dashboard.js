@@ -4,6 +4,9 @@ import Cardslist from '../components/Cardslist';
 import { storage } from '../utils/firebaseConfig';
 import fire from '../utils/firebaseConfig';
 import Crunker from 'crunker';
+import soundIcon from '../assets/icons/sound.png';
+import downloadIcon from '../assets/icons/download.png';
+import addIcon from '../assets/icons/add.png';
 
 class Dashboard extends Component {
     state = {
@@ -12,7 +15,7 @@ class Dashboard extends Component {
         addCard: true
     }
 
-    audio = new Crunker();
+    audio = new Crunker()
 
     addConversation = () => {
         let newCard = {
@@ -37,7 +40,7 @@ class Dashboard extends Component {
         if (a && b) {
             let allCards = [...this.state.allCards, newCard];
             this.setState({ allCards })
-        }
+        } 
     }
 
     componentDidMount = () => {
@@ -48,7 +51,7 @@ class Dashboard extends Component {
         fire
             .firestore()
             .collection('/conversation-snippets')
-            .orderBy("insertedAt", "asc")
+            .orderBy("updatedAt", "asc")
             .onSnapshot((snapshot) => {
                 let querySnapshot = snapshot.docs;
                 var allCards = [];
@@ -101,7 +104,6 @@ class Dashboard extends Component {
                         let mergedFiles = self.audio.concatAudio(buffers)
                         let mergedMp3 = self.audio.export(mergedFiles, "audio/mp3")
                         let fileName = id + "-" + Date.now().toString() + "-snippetRecording.mp3";
-                        // console.log(mergedMp3.blob, "ass", fileName)
                         storage.ref(`snippet-recordings/${fileName}`).put(mergedMp3.blob).then(() => {
                             fire.firestore().collection('/conversation-snippets').doc(id).update({
                                 snippetRecording: true,
@@ -121,7 +123,6 @@ class Dashboard extends Component {
     stitchRecordings = () => {
         var arr = [];
         var self = this;
-        var map = new Map();
         console.log("sas", this.state.allCards)
         // storage.ref().root.child('snippet-recordings').listAll().then((a) => {
         if (this.state.allCards) {
@@ -143,8 +144,6 @@ class Dashboard extends Component {
                             });
                     }
                 })
-
-
                     .catch(error => {
                         throw new Error(error);
                     });
@@ -169,6 +168,12 @@ class Dashboard extends Component {
 
     downloadRecording = () => {
         let self = this;
+
+        // this.state.allCards.map((data) => {
+        //   console.log("data", data.botTextInput);
+        //   console.log("data", data.customerTextInput);
+        // })
+
         storage.ref().child(`final-recording/final-recording.mp3`).getDownloadURL().then(function (url) {
             // self.audio.download(mergedMp3.blob)
             // var x = new Sound(url, 100, false)
@@ -178,27 +183,37 @@ class Dashboard extends Component {
                 .then(buffers => {
                     let mergedFiles = self.audio.concatAudio(buffers)
                     let mergedMp3 = self.audio.export(mergedFiles, "audio/mp3")
-                    console.log(mergedMp3.blob)
-                    self.audio.download(mergedMp3.blob)
+                    // self.audio.play(mergedFiles)
+                    self.audio.download(mergedMp3.blob, "final-recording")
                 })
                 .catch(error => {
                     throw new Error(error);
                 });
-            // fire.database().collection("conversation-snippets").get().then((querySnapshot) => {
-            //     querySnapshot.forEach((doc) => {
-            //        console.log(`${doc.id} => ${doc.data()}`);
-            //     });
-            //  });
-
         }).catch(error => {
             throw new Error(error);
         });
     }
 
     previewRecording = () => {
+        // let self = this;
+        // storage.ref().child(`final-recording/final-recording.mp3`).getDownloadURL().then(function (url) {
+        //     self.setState({ url })
+        // }).catch(error => {
+        //     throw new Error(error);
+        // });
+
         let self = this;
+
         storage.ref().child(`final-recording/final-recording.mp3`).getDownloadURL().then(function (url) {
-            self.setState({ url })
+            self.audio
+                .fetchAudio(url)
+                .then(buffers => {
+                    let mergedFiles = self.audio.concatAudio(buffers)
+                    self.audio.play(mergedFiles)
+                })
+                .catch(error => {
+                    throw new Error(error);
+                });
         }).catch(error => {
             throw new Error(error);
         });
@@ -209,15 +224,20 @@ class Dashboard extends Component {
             <div className="Dashboard">
                 <div className="cards-container">
                     <Cardslist cards={this.state.allCards} />
+                  
                 </div>
                 <div className="options-container">
                     <div className="options">
                         {this.state.addCard
-                            ? <button onClick={this.addConversation}>Add</button >
+                            ? <img src={addIcon}onClick={this.addConversation}/>
                             : null}
-                        <button onClick={this.stitchRecordings}>Listen</button>
+                            {/* <img src={addIcon}onClick={this.addConversation}/> */}
+                            <img src={downloadIcon} onClick={this.stitchRecordings}/>
+                            <img src={soundIcon} onClick={this.previewRecording}/>
+                            <img src={downloadIcon} onClick={this.downloadRecording}/>
+                        {/* <button onClick={this.stitchRecordings}>Listen</button>
                         <button onClick={this.previewRecording}>Preview</button>
-                        <button onClick={this.downloadRecording}>Download</button>
+                        <button onClick={this.downloadRecording}>Download</button> */}
                         {this.state.url
                             ? <audio controls>
                                 <source src={this.state.url} type="audio/mpeg" />

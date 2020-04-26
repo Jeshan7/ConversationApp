@@ -1,6 +1,6 @@
 .Dashboard {
     height: 100vh;
-    overflow-y: hidden;
+    /* overflow-y: hidden; */
     /* background-color: black; */
 }
 
@@ -21,9 +21,6 @@
 }
 
 .cards-container {
-    /* height: 80%; */
-    /* border: 1px solid black; */
-    /* overflow-y: scroll; */
     display: flex;
     justify-content: center;
 }
@@ -33,9 +30,9 @@
     height: 500px;
     border: 1px solid black;
     overflow-y: scroll;
+    scrollbar-width: thin;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
     align-items: center;
     box-shadow: 0 22px 44px 0 #e7e7eb;
 }

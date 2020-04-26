@@ -5,6 +5,8 @@ import { storage } from '../utils/firebaseConfig';
 import fire from '../utils/firebaseConfig';
 import { convertToMp3 } from '../utils/functions';
 import Crunker from 'crunker';
+import sendButton from '../assets/icons/send-button.png';
+import deleteButton from '../assets/icons/delete2.png';
 
 class Card extends Component {
     constructor(props) {
@@ -259,50 +261,77 @@ class Card extends Component {
         return (
             <div className="Card" >
                 <div className="input-container">
-                    <div className="input-bot-container">
-                        <div className="input-audio-bot">
-                            {!this.state.isRecordingBot
-                                ? <i className="far fa-play-circle fa-5x" onClick={this.recordBotStart}></i>
-                                : <i className="far fa-stop-circle fa-5x" onClick={this.recordBotStop}></i>}
-                            <button onClick={() => this.listenRecording("Bot")}>Listen</button>
-                            <button onClick={() => this.sendData("Bot")}>Send</button>
+                    {!this.props.data.botRecording
+                        ? <div className="input-bot-container">
+                            <div className="input-audio-container">
+                                <div className="input-audio-bot">
+                                    {!this.state.isRecordingBot
+                                        ? <i className="far fa-play-circle fa-4x" onClick={this.recordBotStart}></i>
+                                        : <i className="far fa-stop-circle fa-4x" onClick={this.recordBotStop}></i>}
+                                </div>
+                                <button className="btn-listen" onClick={() => this.listenRecording("Bot")}>Listen</button>
+                            </div>
+                            <div className="input-text-container">
+                                <div className="input-text">
+                                    <textarea type="text"
+                                        onChange={(e) => this.handleTextInput("Bot", e)}
+                                        name="bot" 
+                                        maxlength="100"/>
+                                </div>
+                                <img src={sendButton} onClick={() => this.sendData("Bot")} />
+                            </div>
                         </div>
-                        <div className="input-text-bot">
-                            {!this.props.data.botTextInput
-                                ? <input type="text"
-                                    onChange={(e) => this.handleTextInput("Bot", e)}
-                                    name="bot" />
-                                : <p>{this.props.data.botTextInput}</p>}
+                        : <div className="message-container">
+                            <div className="message">
+                                <div className="message-text">{this.props.data.botTextInput}</div>
+                            </div>
+                        </div>}
+                    {!this.props.data.customerRecording
+                        ? <div className="input-customer-container">
+                            <div className="input-audio-container">
+                                <div className="input-audio-customer">
+                                    {!this.state.isRecordingCustomer
+                                        ? <i className="far fa-play-circle fa-4x" onClick={this.recordCustomerStart}></i>
+                                        : <i className="far fa-stop-circle fa-4x" onClick={this.recordCustomerStop}></i>}
+                                </div>
+                                <button className="btn-listen" onClick={() => this.listenRecording("Customer")}>Listen</button>
+                            </div>
+                            <div className="input-text-container">
+                                <div className="input-text">
+                                    <textarea type="text"
+                                        onChange={(e) => this.handleTextInput("Customer", e)}
+                                        name="customer"
+                                        maxlength="150" />
+                                </div>
+                                <img src={sendButton} onClick={() => this.sendData("Customer")} />
+                            </div>
                         </div>
-                    </div>
-                    <div className="input-customer-container">
-                        <div className="input-audio-customer">
-                            {!this.state.isRecordingCustomer
-                                ? <i className="far fa-play-circle fa-5x" onClick={this.recordCustomerStart}></i>
-                                : <i className="far fa-stop-circle fa-5x" onClick={this.recordCustomerStop}></i>}
-                            <button onClick={() => this.listenRecording("Customer")}>Listen</button>
-                            <button onClick={() => this.sendData("Customer")}>Send</button>
-                        </div>
-                        <div className="input-text-customer">
-                            {!this.props.data.customerTextInput
-                                ? <input type="text"
-                                    onChange={(e) => this.handleTextInput("Customer", e)}
-                                    name="customer" />
-                                : <p>{this.props.data.customerTextInput}</p>}
-                        </div>
-                    </div>
+                        : <div className="message-container">
+                            <div className="message">
+                                <div className="message-text">{this.props.data.customerTextInput}</div>
+                            </div>
+                        </div>}
                 </div>
-                <div>
-
+                <div className="footer-container">
+                    <div className="bot-title">
+                        <div>Bot</div>
+                    </div>
+                    <div className="delete-icon">
+                        {this.props.index
+                            ? <img src={deleteButton} width="40px" height="40px" onClick={this.deleteCard} />
+                            : null}
+                    </div>
+                    <div className="customer-title">
+                        <div>Customer</div>
+                    </div>
                     {/* <button onClick={this.combineAudio}>Combine</button> */}
                     {/* <button onClick={this.uploadAudio}>Upload</button> */}
-                    {this.props.index
-                        ? <button onClick={this.deleteCard}>Delete</button>
-                        : null}
+
                     {/* <button onClick={this.playRecording}>Play</button>
                     <button onClick={() => this.downloadRecording(this.props.index)}>Download</button> */}
                 </div>
             </div>
+
         );
     }
 }
