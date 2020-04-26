@@ -115,33 +115,26 @@ class Card extends Component {
 
     deleteCard = () => {
         var a = this.props.index;
-        fire
-            .firestore()
-            .collection('conversation-snippets')
-            .doc(a)
-            .delete()
-            .then(() => {
-                let fileName1 = a + "-bot-recording.mp3";
-
-                storage.ref().child(`bot-recordings/${fileName1}`).delete().then(function () {
+        var b = this.props.data.recordingName;
+        console.log("rec", b)
+        if (this.props.index) {
+            fire
+                .firestore()
+                .collection('conversation-snippets')
+                .doc(a)
+                .delete()
+                .then(() => {
+                    let fileName1 = a + "-bot-recording.mp3";
                     let fileName2 = a + "-customer-recording.mp3";
-                    console.log("filename", fileName2)
-                    storage.ref().child(`customer-recordings/${fileName2}`).delete().then(function () {
-                        let fileName3 = a + "-snippet-recording.mp3";
-                        storage.ref().child(`snippet-recordings/${fileName3}`).delete().then(function () {
-                            console.log("Deletedeleted")
-                        }).catch(function (error) {
-                            console.log('error occured')
-                        });
-                    }).catch(function (error) {
-                        console.log('error occured')
-                    });
-                }).catch(function (error) {
-                    console.log('error occured')
-                });
-            }).catch((err) => {
-                console.log("error")
-            })
+                    storage.ref().child(`bot-recordings/${fileName1}`).delete();
+                    storage.ref().child(`customer-recordings/${fileName2}`).delete();
+                    storage.ref().child(`snippet-recordings/${b}`).delete();
+                }).catch((err) => {
+                    console.log("error")
+                })
+        } else {
+            console.log("No file")
+        }
     }
 
     downloadRecording = (id) => {
@@ -218,22 +211,26 @@ class Card extends Component {
             && ((this.botAudio && this.state.botTextInput)
                 || (this.customerAudio && this.state.customerTextInput))) {
             fire.firestore().collection('/conversation-snippets').add({
-                botTextInput: this.state.botTextInput,
-                customerTextInput: this.state.customerTextInput,
+                botTextInput: (param === "Bot") ? this.state.botTextInput : null,
+                customerTextInput: (param === "Customer") ? this.state.customerTextInput : null,
                 insertedAt: Date.now(),
                 updatedAt: Date.now(),
                 botRecording: false,
-                customerRecording: false
+                customerRecording: false,
+                snippetRecording: false,
+                recordingName: null
             }).then((snapshot) => {
-                if (this.botAudio && param === "Bot") {
+                if (this.botAudio && this.state.botTextInput && param === "Bot") {
                     this.uploadToDatabase(convertToMp3(this.botAudio), snapshot.id, "Bot")
                     fire.firestore().collection('/conversation-snippets').doc(snapshot.id).update({
-                        botRecording: true
+                        botRecording: true,
+                        updatedAt: Date.now()
                     })
-                } else {
+                } else if (this.botAudio && this.state.customerTextInput && param === "Customer") {
                     this.uploadToDatabase(convertToMp3(this.customerAudio), snapshot.id, "Customer")
                     fire.firestore().collection('/conversation-snippets').doc(snapshot.id).update({
-                        customerRecording: true
+                        customerRecording: true,
+                        updatedAt: Date.now(),
                     })
                 }
             })
@@ -242,13 +239,15 @@ class Card extends Component {
                 this.uploadToDatabase(convertToMp3(this.botAudio), this.props.index, "Bot")
                 fire.firestore().collection('/conversation-snippets').doc(this.props.index).update({
                     botRecording: true,
-                    botTextInput: this.state.botTextInput
+                    botTextInput: this.state.botTextInput,
+                    updatedAt: Date.now()
                 })
             } else if (!this.props.data.customerRecording && param === "Customer") {
                 this.uploadToDatabase(convertToMp3(this.customerAudio), this.props.index, "Customer")
                 fire.firestore().collection('/conversation-snippets').doc(this.props.index).update({
                     customerRecording: true,
-                    customerTextInput: this.state.customerTextInput
+                    customerTextInput: this.state.customerTextInput,
+                    updatedAt: Date.now()
                 })
             } else {
                 console.log("no recording")
@@ -297,7 +296,9 @@ class Card extends Component {
 
                     {/* <button onClick={this.combineAudio}>Combine</button> */}
                     {/* <button onClick={this.uploadAudio}>Upload</button> */}
-                    <button onClick={this.deleteCard}>Delete</button>
+                    {this.props.index
+                        ? <button onClick={this.deleteCard}>Delete</button>
+                        : null}
                     {/* <button onClick={this.playRecording}>Play</button>
                     <button onClick={() => this.downloadRecording(this.props.index)}>Download</button> */}
                 </div>

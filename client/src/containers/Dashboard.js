@@ -7,7 +7,9 @@ import Crunker from 'crunker';
 
 class Dashboard extends Component {
     state = {
-        allCards: []
+        allCards: [],
+        url: null,
+        addCard: true
     }
 
     audio = new Crunker();
@@ -19,7 +21,9 @@ class Dashboard extends Component {
             insertedAt: null,
             updatedAt: null,
             botRecording: false,
-            customerRecording: false
+            customerRecording: false,
+            snippetRecording: false,
+            recordingName: null
         };
 
         let a = this.state.allCards.every((data) => {
@@ -44,6 +48,7 @@ class Dashboard extends Component {
         fire
             .firestore()
             .collection('/conversation-snippets')
+            .orderBy("insertedAt", "asc")
             .onSnapshot((snapshot) => {
                 let querySnapshot = snapshot.docs;
                 var allCards = [];
@@ -54,9 +59,12 @@ class Dashboard extends Component {
                         botTextInput,
                         customerTextInput,
                         botRecording,
-                        customerRecording } = doc.data();
+                        customerRecording,
+                        snippetRecording,
+                        recordingName } = doc.data();
                     console.log("a", doc.id)
-                    if (botRecording && customerRecording) {
+                    if (botRecording && customerRecording && !snippetRecording) {
+                        this.setState({ addCard: false })
                         this.combineRecordings(doc.id);
                     }
                     allCards.push({
@@ -66,13 +74,14 @@ class Dashboard extends Component {
                         insertedAt,
                         updatedAt,
                         botRecording,
-                        customerRecording
+                        customerRecording,
+                        recordingName
                     })
                 })
                 this.setState({ allCards })
             })
 
-        console.log("snap", this.state.allCards)
+        console.log("snap1", this.state.allCards)
     }
 
     combineRecordings = (id) => {
@@ -91,9 +100,16 @@ class Dashboard extends Component {
                     .then(buffers => {
                         let mergedFiles = self.audio.concatAudio(buffers)
                         let mergedMp3 = self.audio.export(mergedFiles, "audio/mp3")
-                        let fileName = id + "-snippet-recording.mp3";
-                        console.log(mergedMp3.blob, "ass", fileName)
-                        storage.ref(`snippet-recordings/${fileName}`).put(mergedMp3.blob);
+                        let fileName = id + "-" + Date.now().toString() + "-snippetRecording.mp3";
+                        // console.log(mergedMp3.blob, "ass", fileName)
+                        storage.ref(`snippet-recordings/${fileName}`).put(mergedMp3.blob).then(() => {
+                            fire.firestore().collection('/conversation-snippets').doc(id).update({
+                                snippetRecording: true,
+                                recordingName: fileName
+                            }).then(() => {
+                                self.setState({ addCard: true })
+                            })
+                        })
                     })
                     .catch(error => {
                         throw new Error(error);
@@ -105,88 +121,111 @@ class Dashboard extends Component {
     stitchRecordings = () => {
         var arr = [];
         var self = this;
-        storage.ref().root.child('snippet-recordings').listAll().then((a) => {
-            // var abc = a.items.length;
-            
-            a.items.map((d) => {
-                // console.log("sas", d.location.path)
-                let s = d.location.path.split("/")
-                // console.log("saaaaa", s[1]);
-                let x = s[1];
-                storage.ref().child(`snippet-recordings/${x}`).getDownloadURL().then(function (url) {
+        var map = new Map();
+        console.log("sas", this.state.allCards)
+        // storage.ref().root.child('snippet-recordings').listAll().then((a) => {
+        if (this.state.allCards) {
+            this.state.allCards.map((card) => {
+                storage.ref().child(`snippet-recordings/${card.recordingName}`).getDownloadURL().then(function (url) {
                     arr.push(url);
-                    if(arr.length == a.items.length) {
-                        // arr.map((item) => {
-                            let q = arr
-                            
-                            self.audio
-                                .fetchAudio(...arr)
-                                .then(buffers => {
-                                    let mergedFiles = self.audio.concatAudio(buffers)
-                                    let mergedMp3 = self.audio.export(mergedFiles, "audio/mp3")
-                                    // let fileName = id + "-snippet-recording.mp3";
-                                    console.log(mergedMp3, "ass")
-                                    self.audio.download(mergedMp3.blob)
-                                    // storage.ref(`snippet-recordings/${fileName}`).put(mergedMp3.blob);
-                                })
-                                .catch(error => {
-                                    throw new Error(error);
-                                });
-                        // })  
+                    if (arr.length == self.state.allCards.length) {
+                        let array1 = self.sortArray(arr);
+                        self.audio
+                            .fetchAudio(...array1)
+                            .then(buffers => {
+                                let mergedFiles = self.audio.concatAudio(buffers)
+                                let mergedMp3 = self.audio.export(mergedFiles, "audio/mp3")
+                                // self.audio.play(mergedMp3.blob)
+                                storage.ref('final-recording/final-recording.mp3').put(mergedMp3.blob);
+                            })
+                            .catch(error => {
+                                throw new Error(error);
+                            });
                     }
                 })
+
+
                     .catch(error => {
                         throw new Error(error);
                     });
             })
-            // if (arr.length > 0) {
-            //     arr.map((item) => {
-            //         self.audio
-            //             .fetchAudio(item[0], item[1])
-            //             .then(buffers => {
-            //                 let mergedFiles = self.audio.concatAudio(buffers)
-            //                 let mergedMp3 = self.audio.export(mergedFiles, "audio/mp3")
-            //                 // let fileName = id + "-snippet-recording.mp3";
-            //                 console.log(mergedMp3, "ass")
-            //                 // storage.ref(`snippet-recordings/${fileName}`).put(mergedMp3.blob);
-            //             })
-            //             .catch(error => {
-            //                 throw new Error(error);
-            //             });
-            //     })
-            // }
-        });
+        }
+        // });
+    }
 
-        // arr.map((item) => {
-        //     console.log("hello")
-        //     self.audio
-        //         .fetchAudio(arr[0],arr[1])
-        //         .then(buffers => {
-        //             let mergedFiles = self.audio.concatAudio(buffers)
-        //             let mergedMp3 = self.audio.export(mergedFiles, "audio/mp3")
-        //             // let fileName = id + "-snippet-recording.mp3";
-        //             console.log(mergedMp3, "ass")
-        //             // storage.ref(`snippet-recordings/${fileName}`).put(mergedMp3.blob);
-        //         })
-        //         .catch(error => {
-        //             throw new Error(error);
-        //         });
-        // })
+    sortArray = (arr) => {
+        var map = new Map();
+        arr.map((a) => {
+            let r = a.split("-")
+            // console.log("arr", r[4])
+            map.set(a, r[4]);
+        })
+        let x = new Map([...map.entries()].sort((a, b) => {
+            return a[1] - b[1];
+        }));
+        console.log("x", x);
+        return Array.from(x.keys());
+    }
+
+    downloadRecording = () => {
+        let self = this;
+        storage.ref().child(`final-recording/final-recording.mp3`).getDownloadURL().then(function (url) {
+            // self.audio.download(mergedMp3.blob)
+            // var x = new Sound(url, 100, false)
+            // console.log("ss", url.arrayBuffer());
+            self.audio
+                .fetchAudio(url)
+                .then(buffers => {
+                    let mergedFiles = self.audio.concatAudio(buffers)
+                    let mergedMp3 = self.audio.export(mergedFiles, "audio/mp3")
+                    console.log(mergedMp3.blob)
+                    self.audio.download(mergedMp3.blob)
+                })
+                .catch(error => {
+                    throw new Error(error);
+                });
+            // fire.database().collection("conversation-snippets").get().then((querySnapshot) => {
+            //     querySnapshot.forEach((doc) => {
+            //        console.log(`${doc.id} => ${doc.data()}`);
+            //     });
+            //  });
+
+        }).catch(error => {
+            throw new Error(error);
+        });
+    }
+
+    previewRecording = () => {
+        let self = this;
+        storage.ref().child(`final-recording/final-recording.mp3`).getDownloadURL().then(function (url) {
+            self.setState({ url })
+        }).catch(error => {
+            throw new Error(error);
+        });
     }
 
     render() {
         return (
             <div className="Dashboard">
-                <div className="options-container">
-                    <div className="options">
-                        <button onClick={this.addConversation}>Add</button >
-                        <button onClick={this.stitchRecordings}>Listen</button>
-                        <button>Preview</button>
-                        <button>Download</button>
-                    </div>
-                </div>
                 <div className="cards-container">
                     <Cardslist cards={this.state.allCards} />
+                </div>
+                <div className="options-container">
+                    <div className="options">
+                        {this.state.addCard
+                            ? <button onClick={this.addConversation}>Add</button >
+                            : null}
+                        <button onClick={this.stitchRecordings}>Listen</button>
+                        <button onClick={this.previewRecording}>Preview</button>
+                        <button onClick={this.downloadRecording}>Download</button>
+                        {this.state.url
+                            ? <audio controls>
+                                <source src={this.state.url} type="audio/mpeg" />
+                                    Your browser does not support the audio tag.
+                           </audio>
+                            : null
+                        }
+                    </div>
                 </div>
             </div>
         );

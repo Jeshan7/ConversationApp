@@ -9,7 +9,6 @@ const Cardslist = (props) => {
                 return <Card key={card.key} index={card.key} data={card} />
             })
             }
-
         </div>
     );
 }
