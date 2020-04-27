@@ -5,10 +5,14 @@ import { storage } from "../utils/firebaseConfig";
 import fire from "../utils/firebaseConfig";
 import { convertToMp3 } from "../utils/functions";
 import Crunker from "crunker";
-import sendButton from "../assets/icons/send-button.png";
+import sendButton from "../assets/icons/send.png";
 import deleteButton from "../assets/icons/delete.png";
 import { ToastContainer, toast, ToastType } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import customerIcon from "../assets/icons/customer.png";
+import botIcon from "../assets/icons/bot.png";
+import playIcon from "../assets/icons/play.png";
+import pauseIcon from "../assets/icons/pause.png";
 
 class Card extends Component {
   constructor(props) {
@@ -230,7 +234,8 @@ class Card extends Component {
             botRecording: true,
             botTextInput: this.state.botTextInput,
             updatedAt: Date.now(),
-          }).then(() => {
+          })
+          .then(() => {
             storage.ref().child(`final-recording/final-recording.mp3`).delete();
           });
       } else if (!this.props.data.customerRecording && param === "Customer") {
@@ -247,7 +252,8 @@ class Card extends Component {
             customerRecording: true,
             customerTextInput: this.state.customerTextInput,
             updatedAt: Date.now(),
-          }).then(() => {
+          })
+          .then(() => {
             storage.ref().child(`final-recording/final-recording.mp3`).delete();
           });
       } else if (this.props.index === undefined) {
@@ -280,15 +286,19 @@ class Card extends Component {
               <div className="input-audio-container">
                 <div className="input-audio-bot">
                   {!this.state.isRecordingBot ? (
-                    <i
-                      className="far fa-play-circle fa-4x"
+                    <img
+                      src={playIcon}
+                      width="25px"
+                      height="25px"
                       onClick={this.recordBotStart}
-                    ></i>
+                    />
                   ) : (
-                    <i
-                      className="far fa-stop-circle fa-4x"
+                    <img
+                      src={pauseIcon}
+                      width="25px"
+                      height="25px"
                       onClick={this.recordBotStop}
-                    ></i>
+                    />
                   )}
                 </div>
                 <button
@@ -307,11 +317,16 @@ class Card extends Component {
                     maxlength="100"
                   />
                 </div>
-                <img src={sendButton} onClick={() => this.sendData("Bot")} />
+                <img
+                  src={sendButton}
+                  width="25px"
+                  height="25px"
+                  onClick={() => this.sendData("Bot")}
+                />
               </div>
             </div>
           ) : (
-            <div className="message-container">
+            <div className="message-bot-container">
               <div className="message">
                 <div className="message-text">
                   {this.props.data.botTextInput}
@@ -324,15 +339,19 @@ class Card extends Component {
               <div className="input-audio-container">
                 <div className="input-audio-customer">
                   {!this.state.isRecordingCustomer ? (
-                    <i
-                      className="far fa-play-circle fa-4x"
+                    <img
+                      src={playIcon}
+                      width="25px"
+                      height="25px"
                       onClick={this.recordCustomerStart}
-                    ></i>
+                    />
                   ) : (
-                    <i
-                      className="far fa-stop-circle fa-4x"
+                    <img
+                      src={pauseIcon}
+                      width="25px"
+                      height="25px"
                       onClick={this.recordCustomerStop}
-                    ></i>
+                    />
                   )}
                 </div>
                 <button
@@ -353,12 +372,14 @@ class Card extends Component {
                 </div>
                 <img
                   src={sendButton}
+                  width="25px"
+                  height="25px"
                   onClick={() => this.sendData("Customer")}
                 />
               </div>
             </div>
           ) : (
-            <div className="message-container">
+            <div className="message-customer-container">
               <div className="message">
                 <div className="message-text">
                   {this.props.data.customerTextInput}
@@ -369,20 +390,24 @@ class Card extends Component {
         </div>
         <div className="footer-container">
           <div className="bot-title">
-            <div>Bot</div>
+            <div>
+              <img src={botIcon} height="25px" width="25px" />
+            </div>
           </div>
           <div className="delete-icon">
             {this.props.index ? (
               <img
                 src={deleteButton}
-                width="40px"
-                height="40px"
+                width="25px"
+                height="25px"
                 onClick={this.deleteCard}
               />
             ) : null}
           </div>
           <div className="customer-title">
-            <div>Customer</div>
+            <div>
+              <img src={customerIcon} height="25px" width="25px" />
+            </div>
           </div>
         </div>
       </div>

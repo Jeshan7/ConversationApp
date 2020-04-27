@@ -7,11 +7,12 @@ import Crunker from "crunker";
 import soundIcon from "../assets/icons/sound.png";
 import downloadIcon from "../assets/icons/download.png";
 import addIcon from "../assets/icons/add.png";
-import stitchIcon from "../assets/icons/stitch.png";
 import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 import Loader from "react-loader-spinner";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { saveAs } from "file-saver";
+import stitchIcon from "../assets/icons/merge.png";
 
 class Dashboard extends Component {
   state = {
@@ -19,6 +20,7 @@ class Dashboard extends Component {
     url: null,
     addCard: true,
     isLoading: false,
+    isDownload: null,
   };
 
   audio = new Crunker();
@@ -56,7 +58,6 @@ class Dashboard extends Component {
   };
 
   fetchAllConversationCards = () => {
-    // this.setState({ isLoading: true });
     fire
       .firestore()
       .collection("/conversation-snippets")
@@ -172,8 +173,8 @@ class Dashboard extends Component {
                     .put(mergedMp3.blob);
                   setTimeout(() => {
                     self.setState({ isLoading: false });
-                  }, 4000);
-                  toast.info("Audios has been stitched");
+                    toast.info("Audios has been stitched");
+                  }, 6000);
                 })
                 .catch((error) => {
                   toast.error("Check that audio has been recorded");
@@ -205,38 +206,51 @@ class Dashboard extends Component {
 
   downloadRecording = () => {
     let self = this;
-    // storage
-    //   .ref()
-    //   .child(`final-recording/final-recording.mp3`)
-    //   .getDownloadURL()
-    //   .then(function (url) {
-    //     self.audio
-    //       .fetchAudio(url)
-    //       .then((buffers) => {
-    //         let mergedFiles = self.audio.concatAudio(buffers);
-    //         let mergedMp3 = self.audio.export(mergedFiles, "audio/mp3");
-    //         self.audio.download(mergedMp3.blob, "final-recording");
-    //       })
-    //       .catch((error) => {
-    //         toast.error("Error while downloading");
-    //       });
-    //   })
-    //   .catch((error) => {
-    //     toast.error("Error while downloading");
-    //   });
+    storage
+      .ref()
+      .child(`final-recording/final-recording.mp3`)
+      .getDownloadURL()
+      .then(function (url) {
+        self.audio
+          .fetchAudio(url)
+          .then((buffers) => {
+            let mergedFiles = self.audio.concatAudio(buffers);
+            let mergedMp3 = self.audio.export(mergedFiles, "audio/mp3");
+            {
+              self.state.allCards
+                ? self.generateJSON(self.state.allCards)
+                : null;
+            }
+            self.audio.download(mergedMp3.blob, "final-recording");
+          })
+          .catch((error) => {
+            toast.error("Error while downloading");
+          });
+      })
+      .catch((error) => {
+        toast.error("Error while downloading");
+      });
+  };
+
+  generateJSON = (paramArray) => {
     let arr = [];
-    let x = {};
-    let a = null;
-    let b = null;
-    if (this.state.allCards) {
-      this.state.allCards.map((data) => {
-        a = data.botTextInput;
-        b = data.customerTextInput;
-        x = { a, b };
-        arr.push("");
+    let obj = {};
+    let bot = null;
+    let customer = null;
+    if (paramArray) {
+      paramArray.map((data) => {
+        bot = data.botTextInput;
+        customer = data.customerTextInput;
+        obj = { bot, customer };
+        arr.push(obj);
       });
     }
-    console.log("aa", arr);
+    let data = JSON.stringify(arr);
+    var blob = new Blob([data], {
+      type: "text/json;charset=utf-8;",
+    });
+
+    saveAs(blob, "final-conversation.json");
   };
 
   previewRecording = () => {
@@ -255,12 +269,10 @@ class Dashboard extends Component {
             self.setState({ isLoading: false });
           })
           .catch((error) => {
-            // toast.error("Error while playing");
             self.setState({ isLoading: false });
           });
       })
       .catch((error) => {
-        // toast.error("Error while playing");
         self.setState({ isLoading: false });
       });
   };
@@ -276,36 +288,36 @@ class Dashboard extends Component {
           {!this.state.isLoading ? (
             <div className="options-box">
               <div className="options">
-                {/* {this.state.addCard ? (
-                  <img src={addIcon} onClick={this.addConversation} />
-                ) : (
-                  <Loader
-                    type="TailSpin"
-                    color="#0da6ad"
-                    height={30}
-                    width={30}
-                  />
-                )} */}
-                <img src={addIcon} onClick={this.addConversation} />
+                <img
+                  src={addIcon}
+                  width="25px"
+                  height="25px"
+                  onClick={this.addConversation}
+                />
               </div>
               <div className="options">
-                {/* {this.state.addCard ? (
-                  <img src={stitchIcon} onClick={this.stitchRecordings} />
-                ) : (
-                  <Loader
-                    type="TailSpin"
-                    color="#0da6ad"
-                    height={30}
-                    width={30}
-                  />
-                )} */}
-                <img src={stitchIcon} onClick={this.stitchRecordings} />
+                <img
+                  src={stitchIcon}
+                  width="25px"
+                  height="25px"
+                  onClick={this.stitchRecordings}
+                />
               </div>
               <div className="options">
-                <img src={soundIcon} onClick={this.previewRecording} />
+                <img
+                  src={soundIcon}
+                  width="25px"
+                  height="25px"
+                  onClick={this.previewRecording}
+                />
               </div>
               <div className="options">
-                <img src={downloadIcon} onClick={this.downloadRecording} />
+                <img
+                  src={downloadIcon}
+                  width="25px"
+                  height="25px"
+                  onClick={this.downloadRecording}
+                />
               </div>
             </div>
           ) : (

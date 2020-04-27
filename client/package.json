@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "crunker": "^0.2.0",
+    "file-saver": "^2.0.2",
     "firebase": "^7.14.2",
     "mic-recorder-to-mp3": "^2.2.1",
     "react": "^16.13.1",

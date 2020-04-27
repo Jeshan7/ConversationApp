@@ -3,9 +3,10 @@
     width: 80%;
     height: 200px;
     box-shadow: 0 22px 44px 0 #e7e7eb;
-    margin-top: 3%;
-    margin-bottom: 3%;
-    /* border: 1    black; */
+    margin-top: 2%;
+    margin-bottom: 2%;
+    z-index: 999;
+    background-color: #fff;
 }
 
 i {
@@ -13,7 +14,6 @@ i {
 }
 
 .input-container {
-    /* border: 1px solid red; */
     width: 100%;
     height: 75%;
     display: flex;
@@ -23,27 +23,25 @@ i {
 .input-bot-container {
     width: 50%;
     height: 100%;
-    /* background-color: red; */
     display: flex;
+    border-right: 1px solid #808080;
 }
 
 .input-audio-container {
     width: 40%;
     height: 100%;
     display: flex;
-    justify-content: space-around;
+    justify-content: space-evenly;
     align-items: center;
     flex-direction: column;
-    /* border: 1px solid black; */
 }
 
 .input-audio-bot {
     width: 100%;
     height: 50%;
-    /* border: 1px solid black; */
-    /* box-shadow: 0 22px 44px 0 rgba(255, 69, 163, 0.49);
-    background-image: linear-gradient(134deg, #ffc300, #ff00ff); */
-    /* transition: all .3s ease-in-out; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .btn-listen {
@@ -61,8 +59,8 @@ i {
 
 .btn-listen:hover {
     color: #fff;
- box-shadow: 0 22px 44px 0 rgba(28, 71, 132, 0.49);
-    background-image: linear-gradient(134deg, #0da6ad, #1c4784);
+    background-color: #acefe3;
+    box-shadow: 0 22px 44px 0 rgba(28, 71, 132, 0.49);
 }
 
 .input-text-container {
@@ -72,7 +70,6 @@ i {
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    /* background-color: green; */
 }
 
 .input-text {
@@ -87,6 +84,8 @@ textarea {
     font-family: 'Roboto-Regular', 'Roboto';
     font-size: 15px;
     font-weight: 500;
+    border-radius: 5px;
+    padding: 5px;
 }
 
 img {
@@ -102,6 +101,9 @@ img {
 .input-audio-customer {
     width: 40%;
     height: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .input-text-container {
@@ -112,7 +114,16 @@ img {
     align-items: center;
 }
 
-.message-container {
+.message-bot-container {
+    width: 50%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-right: 1px solid #C0C0C0;
+}
+
+.message-customer-container {
     width: 50%;
     height: 100%;
     display: flex;
@@ -132,9 +143,9 @@ img {
     font-size: 15px;
     font-weight: 600;
     letter-spacing: 0.5px;
-    box-shadow: 0 22px 44px 0 rgba(28, 71, 132, 0.49);
-    background-image: linear-gradient(134deg, #0da6ad, #1c4784);
-    word-wrap: break-word; 
+    box-shadow: 0 22px 44px 0 rgba(28, 71, 132, 0.22);
+    background-color: #56f1c2;
+    word-wrap: break-word;
 }
 
 .message-text {

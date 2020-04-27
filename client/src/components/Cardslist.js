@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../assets/css/Dashboard.css";
 import Card from "./Card";
-import dashboardIcon from "../assets/icons/dashboard.png";
 
 const Cardslist = (props) => {
   const cardsEndRef = useRef(null);
@@ -14,9 +13,9 @@ const Cardslist = (props) => {
 
   return (
     <div className="Cardslist">
-        {props.cards.map((card, index) => {
-          return <Card key={card.key} index={card.key} data={card} />;
-        })}
+      {props.cards.map((card, index) => {
+        return <Card key={card.key} index={card.key} data={card} />;
+      })}
       <div ref={cardsEndRef} />
     </div>
   );
