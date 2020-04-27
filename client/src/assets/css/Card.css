@@ -61,8 +61,8 @@ i {
 
 .btn-listen:hover {
     color: #fff;
-    box-shadow: 0 22px 44px 0 rgba(255, 69, 163, 0.49);
-    background-image: linear-gradient(134deg, #ffc300, #ff00ff);
+ box-shadow: 0 22px 44px 0 rgba(28, 71, 132, 0.49);
+    background-image: linear-gradient(134deg, #0da6ad, #1c4784);
 }
 
 .input-text-container {
@@ -96,7 +96,6 @@ img {
 .input-customer-container {
     width: 50%;
     height: 100%;
-    /* border: 1px solid black; */
     display: flex;
 }
 
@@ -116,7 +115,6 @@ img {
 .message-container {
     width: 50%;
     height: 100%;
-    /* border: 1px solid black; */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -126,7 +124,6 @@ img {
     width: 80%;
     height: 80%;
     border-radius: 10px;
-    /* background-color: #e5e5ee; */
     display: flex;
     align-items: center;
     justify-content: center;

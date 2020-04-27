@@ -1,339 +1,393 @@
-import React, { Component } from 'react';
-import '../assets/css/Card.css';
-import MicRecorder from 'mic-recorder-to-mp3';
-import { storage } from '../utils/firebaseConfig';
-import fire from '../utils/firebaseConfig';
-import { convertToMp3 } from '../utils/functions';
-import Crunker from 'crunker';
-import sendButton from '../assets/icons/send-button.png';
-import deleteButton from '../assets/icons/delete2.png';
+import React, { Component } from "react";
+import "../assets/css/Card.css";
+import MicRecorder from "mic-recorder-to-mp3";
+import { storage } from "../utils/firebaseConfig";
+import fire from "../utils/firebaseConfig";
+import { convertToMp3 } from "../utils/functions";
+import Crunker from "crunker";
+import sendButton from "../assets/icons/send-button.png";
+import deleteButton from "../assets/icons/delete.png";
+import { ToastContainer, toast, ToastType } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 class Card extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            isRecordingBot: false,
-            isRecordingCustomer: false,
-            isBlocked: false,
-            isRecording: false,
-            botTextInput: null,
-            customerTextInput: null,
-            conversationId: null
-        }
-        this.botAudio = null,
-            this.customerAudio = null,
-            this.finalAudio = null
+  constructor(props) {
+    super(props);
+    this.state = {
+      isRecordingBot: false,
+      isRecordingCustomer: false,
+      isBlocked: false,
+      isRecording: false,
+      botTextInput: null,
+      customerTextInput: null,
+      conversationId: null,
+    };
+    (this.botAudio = null),
+      (this.customerAudio = null),
+      (this.finalAudio = null);
+  }
 
+  recorder = new MicRecorder({ bitRate: 128 });
+  audio = new Crunker();
+
+  recordBotStart = () => {
+    if (
+      !this.state.isRecording &&
+      !this.state.isRecordingBot &&
+      this.state.botTextInput
+    ) {
+      if (this.state.isBlocked) {
+        toast.error("Permission Denied");
+      } else {
+        this.recorder
+          .start()
+          .then(() => {
+            this.setState({ isRecordingBot: true, isRecording: true });
+          })
+          .catch((e) => {
+            toast.info("Error occured while recording");
+          });
+      }
+    } else {
+      if (!this.state.customerTextInput) {
+        toast.info("First enter text");
+      } else {
+        toast.info("Bot Audio is being recorded");
+      }
     }
+  };
 
-    recorder = new MicRecorder({ bitRate: 128 });
-    audio = new Crunker();
+  recordBotStop = () => {
+    this.recorder
+      .stop()
+      .getMp3()
+      .then(([buffer, blob]) => {
+        this.setState({ isRecordingBot: false, isRecording: false });
+        this.botAudio = buffer;
+        toast.info("Recording Done");
+      })
+      .catch((e) => {
+        toast.info("We could not retrieve your message");
+        console.log(e);
+      });
+  };
 
-    recordBotStart = () => {
-        if (!this.state.isRecording && !this.state.isRecordingBot) {
-            if (this.state.isBlocked) {
-                console.log("Permission denied");
-            } else {
-                this.recorder.start().then(() => {
-                    this.setState({ isRecordingBot: true, isRecording: true })
-                    console.log("Recording started")
-                }).catch((e) => {
-                    console.error(e);
-                });
-            }
-        } else {
-            console.log("already recording")
-        }
-        // console.log(this.state.isRecording , " ", this.state.isRecordingBot)
+  recordCustomerStart = () => {
+    if (
+      !this.state.isRecording &&
+      !this.state.isRecordingCustomer &&
+      this.state.customerTextInput
+    ) {
+      if (this.state.isBlocked) {
+        toast.error("Permission Denied");
+      } else {
+        this.recorder
+          .start()
+          .then(() => {
+            this.setState({ isRecordingCustomer: true, isRecording: true });
+          })
+          .catch((e) => {
+            toast.info("Error occured while recording");
+          });
+      }
+    } else {
+      if (!this.state.customerTextInput) {
+        toast.info("First enter text");
+      } else {
+        toast.info("Bot Audio is being recorded");
+      }
     }
+  };
 
-    recordBotStop = () => {
-        this.recorder.stop().getMp3().then(([buffer, blob]) => {
-            this.setState({ isRecordingBot: false, isRecording: false });
-            this.botAudio = buffer;
-            // this.uploadToDatabase(this.botAudio)
-        }).catch((e) => {
-            alert('We could not retrieve your message');
-            console.log(e);
-        });
-    }
+  recordCustomerStop = () => {
+    this.recorder
+      .stop()
+      .getMp3()
+      .then(([buffer, blob]) => {
+        this.setState({ isRecordingCustomer: false, isRecording: false });
+        this.customerAudio = buffer;
+        toast.info("Recording Done");
+      })
+      .catch((e) => {
+        toast.info("We could not retrieve your message");
+        console.log(e);
+      });
+  };
 
-    recordCustomerStart = () => {
-        if (!this.state.isRecording && !this.state.isRecordingCustomer) {
-            if (this.state.isBlocked) {
-                console.log("Permission denied");
-            } else {
-                this.recorder.start().then(() => {
-                    this.setState({ isRecordingCustomer: true, isRecording: true })
-                    console.log("Recording started")
-                }).catch((e) => {
-                    console.error(e);
-                });
-            }
-        } else {
-            console.log("already recording")
-        }
-    }
-
-    recordCustomerStop = () => {
-        this.recorder.stop().getMp3().then(([buffer, blob]) => {
-            this.setState({ isRecordingCustomer: false, isRecording: false })
-            this.customerAudio = buffer;
-            // this.uploadToDatabase(this.customerAudio)
-        }).catch((e) => {
-            alert('We could not retrieve your message');
-            console.log(e);
-        });
-    }
-
-    combineAudio = () => {
-        if (this.botAudio && this.customerAudio) {
-            let finalRecording = this.botAudio.concat(this.customerAudio)
-            this.finalAudio = convertToMp3(finalRecording);
-        } else {
-            console.log("No Recording")
-        }
-    }
-
-    uploadAudio = () => {
-        if (this.finalAudio) {
-            // this.uploadToDatabase(this.finalAudio)
-            let fileName = this.props.index + "-" + this.finalAudio.name;
-            storage.ref(`audio/${fileName}`).put(this.finalAudio);
-
-            fire
-                .firestore()
-                .collection("conversation-snippets")
-                .doc(this.props.index)
-                .update({
-                    botTextInput: this.state.botTextInput,
-                    customerTextInput: this.state.customerTextInput
-                })
-            console.log("done")
-        } else {
-            console.log("no file")
-        }
-    }
-
-    deleteCard = () => {
-        var a = this.props.index;
-        var b = this.props.data.recordingName;
-        console.log("rec", b)
-        if (this.props.index) {
-            fire
-                .firestore()
-                .collection('conversation-snippets')
-                .doc(a)
-                .delete()
-                .then(() => {
-                    let fileName1 = a + "-bot-recording.mp3";
-                    let fileName2 = a + "-customer-recording.mp3";
-                    storage.ref().child(`bot-recordings/${fileName1}`).delete();
-                    storage.ref().child(`customer-recordings/${fileName2}`).delete();
-                    storage.ref().child(`snippet-recordings/${b}`).delete();
-                }).catch((err) => {
-                    console.log("error")
-                })
-        } else {
-            console.log("No file")
-        }
-    }
-
-    downloadRecording = (id) => {
-        let self = this;
-        let fileName = id + "-bot-recording.mp3";
-        storage.ref().child(`audio/${fileName}`).getDownloadURL().then(function (url) {
-            console.log("aa", url)
-            self.audio
-                .fetchAudio('https://firebasestorage.googleapis.com/v0/b/fir-practice-13d0a.appspot.com/o/audio%2F0FXs4HK2HTzWHd64tH10-bot-recording.mp3?alt=media&token=505dab3b-bb5f-4075-92f9-985d4650d1b2'
-                    , 'https://firebasestorage.googleapis.com/v0/b/fir-practice-13d0a.appspot.com/o/audio%2FRpTL23167Ljz9ATqxw4A-bot-recording.mp3?alt=media&token=10dba5e8-0066-4495-bde0-b5d9a315b979')
-                .then(buffers => {
-                    console.log("buffer", buffers)
-                    var a = self.audio.concatAudio(buffers)
-                    console.log("1", a)
-                    let x = self.audio.export(a, "audio/mp3")
-                    console.log("2", x)
-                    let z = self.audio.download(x.blob)
-                    console.log("3", z);
-
-
-                })
-                .catch(error => {
-                    throw new Error(error);
-                });
+  deleteCard = () => {
+    let index = this.props.index;
+    let recordingName = this.props.data.recordingName;
+    if (this.props.index) {
+      fire
+        .firestore()
+        .collection("conversation-snippets")
+        .doc(index)
+        .delete()
+        .then(() => {
+          let fileName1 = index + "-bot-recording.mp3";
+          let fileName2 = index + "-customer-recording.mp3";
+          storage.ref().child(`bot-recordings/${fileName1}`).delete();
+          storage.ref().child(`customer-recordings/${fileName2}`).delete();
+          storage.ref().child(`snippet-recordings/${recordingName}`).delete();
         })
+        .catch((err) => {
+          console.log("error");
+        });
+    } else {
+      toast.info("No Such File");
     }
+  };
 
-    playRecording = () => {
-        if (this.finalAudio) {
-            let player = new Audio(URL.createObjectURL(this.finalAudio));
-            player.play();
-        }
+  handleTextInput = (param, e) => {
+    if (param === "Bot") {
+      this.setState({ botTextInput: e.target.value });
+      this.botAudio = null;
+      //   console.log("recording deleted as text has been changed");
+    } else if (param === "Customer") {
+      this.setState({ customerTextInput: e.target.value });
+      this.customerAudio = null;
+      //   console.log("recording deleted as text has been changed");
     }
+  };
 
-    listenRecording = (param) => {
-        if (param === "Bot" && this.botAudio) {
-            let player = new Audio(URL.createObjectURL(convertToMp3(this.botAudio)));
-            player.play();
-        } else if (param === "Customer" && this.customerAudio) {
-            let player = new Audio(URL.createObjectURL(convertToMp3(this.customerAudio)));
-            player.play();
-        } else {
-            console.log("no recording found");
-        }
+  uploadToDatabase = (recording, id, param) => {
+    if (param === "Bot") {
+      let fileName = id + "-" + "bot" + "-" + recording.name;
+      storage.ref(`bot-recordings/${fileName}`).put(recording);
+    } else {
+      let fileName = id + "-" + "customer" + "-" + recording.name;
+      storage.ref(`customer-recordings/${fileName}`).put(recording);
     }
+  };
 
-    handleTextInput = (param, e) => {
-        if (param === "Bot") {
-            this.setState({ botTextInput: e.target.value })
-            this.botAudio = null;
-            console.log("recording deleted as text has been changed")
-        } else if (param === "Customer") {
-            this.setState({ customerTextInput: e.target.value })
-            this.customerAudio = null;
-            console.log("recording deleted as text has been changed")
-        }
-    }
-
-    uploadToDatabase = (recording, id, param) => {
-        console.log(id, "asasas", param, recording)
-        if (param === "Bot") {
-            let fileName = id + "-" + "bot" + "-" + recording.name;
-            storage.ref(`bot-recordings/${fileName}`).put(recording);
-            console.log("done")
-        } else {
-            let fileName = id + "-" + "customer" + "-" + recording.name;
-            storage.ref(`customer-recordings/${fileName}`).put(recording);
-            console.log("done")
-        }
-    }
-
-    sendData = (param) => {
-        if (this.props.index === undefined
-            && ((this.botAudio && this.state.botTextInput)
-                || (this.customerAudio && this.state.customerTextInput))) {
-            fire.firestore().collection('/conversation-snippets').add({
-                botTextInput: (param === "Bot") ? this.state.botTextInput : null,
-                customerTextInput: (param === "Customer") ? this.state.customerTextInput : null,
-                insertedAt: Date.now(),
+  sendData = (param) => {
+    if (
+      this.props.index === undefined &&
+      ((this.botAudio && this.state.botTextInput) ||
+        (this.customerAudio && this.state.customerTextInput))
+    ) {
+      fire
+        .firestore()
+        .collection("/conversation-snippets")
+        .add({
+          botTextInput: param === "Bot" ? this.state.botTextInput : null,
+          customerTextInput:
+            param === "Customer" ? this.state.customerTextInput : null,
+          insertedAt: Date.now(),
+          updatedAt: Date.now(),
+          botRecording: false,
+          customerRecording: false,
+          snippetRecording: false,
+          recordingName: null,
+        })
+        .then((snapshot) => {
+          if (this.botAudio && this.state.botTextInput && param === "Bot") {
+            this.uploadToDatabase(
+              convertToMp3(this.botAudio),
+              snapshot.id,
+              "Bot"
+            );
+            fire
+              .firestore()
+              .collection("/conversation-snippets")
+              .doc(snapshot.id)
+              .update({
+                botRecording: true,
                 updatedAt: Date.now(),
-                botRecording: false,
-                customerRecording: false,
-                snippetRecording: false,
-                recordingName: null
-            }).then((snapshot) => {
-                if (this.botAudio && this.state.botTextInput && param === "Bot") {
-                    this.uploadToDatabase(convertToMp3(this.botAudio), snapshot.id, "Bot")
-                    fire.firestore().collection('/conversation-snippets').doc(snapshot.id).update({
-                        botRecording: true,
-                        updatedAt: Date.now()
-                    })
-                } else if (this.botAudio && this.state.customerTextInput && param === "Customer") {
-                    this.uploadToDatabase(convertToMp3(this.customerAudio), snapshot.id, "Customer")
-                    fire.firestore().collection('/conversation-snippets').doc(snapshot.id).update({
-                        customerRecording: true,
-                        updatedAt: Date.now(),
-                    })
-                }
-            })
-        } else {
-            if (!this.props.data.botRecording && param === "Bot") {
-                this.uploadToDatabase(convertToMp3(this.botAudio), this.props.index, "Bot")
-                fire.firestore().collection('/conversation-snippets').doc(this.props.index).update({
-                    botRecording: true,
-                    botTextInput: this.state.botTextInput,
-                    updatedAt: Date.now()
-                })
-            } else if (!this.props.data.customerRecording && param === "Customer") {
-                this.uploadToDatabase(convertToMp3(this.customerAudio), this.props.index, "Customer")
-                fire.firestore().collection('/conversation-snippets').doc(this.props.index).update({
-                    customerRecording: true,
-                    customerTextInput: this.state.customerTextInput,
-                    updatedAt: Date.now()
-                })
-            } else {
-                console.log("no recording")
-            }
-        }
-    }
-
-    render() {
-        return (
-            <div className="Card" >
-                <div className="input-container">
-                    {!this.props.data.botRecording
-                        ? <div className="input-bot-container">
-                            <div className="input-audio-container">
-                                <div className="input-audio-bot">
-                                    {!this.state.isRecordingBot
-                                        ? <i className="far fa-play-circle fa-4x" onClick={this.recordBotStart}></i>
-                                        : <i className="far fa-stop-circle fa-4x" onClick={this.recordBotStop}></i>}
-                                </div>
-                                <button className="btn-listen" onClick={() => this.listenRecording("Bot")}>Listen</button>
-                            </div>
-                            <div className="input-text-container">
-                                <div className="input-text">
-                                    <textarea type="text"
-                                        onChange={(e) => this.handleTextInput("Bot", e)}
-                                        name="bot" 
-                                        maxlength="100"/>
-                                </div>
-                                <img src={sendButton} onClick={() => this.sendData("Bot")} />
-                            </div>
-                        </div>
-                        : <div className="message-container">
-                            <div className="message">
-                                <div className="message-text">{this.props.data.botTextInput}</div>
-                            </div>
-                        </div>}
-                    {!this.props.data.customerRecording
-                        ? <div className="input-customer-container">
-                            <div className="input-audio-container">
-                                <div className="input-audio-customer">
-                                    {!this.state.isRecordingCustomer
-                                        ? <i className="far fa-play-circle fa-4x" onClick={this.recordCustomerStart}></i>
-                                        : <i className="far fa-stop-circle fa-4x" onClick={this.recordCustomerStop}></i>}
-                                </div>
-                                <button className="btn-listen" onClick={() => this.listenRecording("Customer")}>Listen</button>
-                            </div>
-                            <div className="input-text-container">
-                                <div className="input-text">
-                                    <textarea type="text"
-                                        onChange={(e) => this.handleTextInput("Customer", e)}
-                                        name="customer"
-                                        maxlength="150" />
-                                </div>
-                                <img src={sendButton} onClick={() => this.sendData("Customer")} />
-                            </div>
-                        </div>
-                        : <div className="message-container">
-                            <div className="message">
-                                <div className="message-text">{this.props.data.customerTextInput}</div>
-                            </div>
-                        </div>}
-                </div>
-                <div className="footer-container">
-                    <div className="bot-title">
-                        <div>Bot</div>
-                    </div>
-                    <div className="delete-icon">
-                        {this.props.index
-                            ? <img src={deleteButton} width="40px" height="40px" onClick={this.deleteCard} />
-                            : null}
-                    </div>
-                    <div className="customer-title">
-                        <div>Customer</div>
-                    </div>
-                    {/* <button onClick={this.combineAudio}>Combine</button> */}
-                    {/* <button onClick={this.uploadAudio}>Upload</button> */}
-
-                    {/* <button onClick={this.playRecording}>Play</button>
-                    <button onClick={() => this.downloadRecording(this.props.index)}>Download</button> */}
-                </div>
-            </div>
-
+              });
+          } else if (
+            this.botAudio &&
+            this.state.customerTextInput &&
+            param === "Customer"
+          ) {
+            this.uploadToDatabase(
+              convertToMp3(this.customerAudio),
+              snapshot.id,
+              "Customer"
+            );
+            fire
+              .firestore()
+              .collection("/conversation-snippets")
+              .doc(snapshot.id)
+              .update({
+                customerRecording: true,
+                updatedAt: Date.now(),
+              });
+          }
+        });
+    } else {
+      if (!this.props.data.botRecording && param === "Bot") {
+        this.uploadToDatabase(
+          convertToMp3(this.botAudio),
+          this.props.index,
+          "Bot"
         );
+        fire
+          .firestore()
+          .collection("/conversation-snippets")
+          .doc(this.props.index)
+          .update({
+            botRecording: true,
+            botTextInput: this.state.botTextInput,
+            updatedAt: Date.now(),
+          }).then(() => {
+            storage.ref().child(`final-recording/final-recording.mp3`).delete();
+          });
+      } else if (!this.props.data.customerRecording && param === "Customer") {
+        this.uploadToDatabase(
+          convertToMp3(this.customerAudio),
+          this.props.index,
+          "Customer"
+        );
+        fire
+          .firestore()
+          .collection("/conversation-snippets")
+          .doc(this.props.index)
+          .update({
+            customerRecording: true,
+            customerTextInput: this.state.customerTextInput,
+            updatedAt: Date.now(),
+          }).then(() => {
+            storage.ref().child(`final-recording/final-recording.mp3`).delete();
+          });
+      } else if (this.props.index === undefined) {
+        toast.info("No recording");
+      }
     }
+  };
+
+  listenRecording = (param) => {
+    if (param === "Bot" && this.botAudio) {
+      let player = new Audio(URL.createObjectURL(convertToMp3(this.botAudio)));
+      player.play();
+    } else if (param === "Customer" && this.customerAudio) {
+      let player = new Audio(
+        URL.createObjectURL(convertToMp3(this.customerAudio))
+      );
+      player.play();
+    } else {
+      toast.info("No recording found");
+    }
+  };
+
+  render() {
+    return (
+      <div className="Card">
+        <ToastContainer position={toast.POSITION.TOP_LEFT} />
+        <div className="input-container">
+          {!this.props.data.botRecording ? (
+            <div className="input-bot-container">
+              <div className="input-audio-container">
+                <div className="input-audio-bot">
+                  {!this.state.isRecordingBot ? (
+                    <i
+                      className="far fa-play-circle fa-4x"
+                      onClick={this.recordBotStart}
+                    ></i>
+                  ) : (
+                    <i
+                      className="far fa-stop-circle fa-4x"
+                      onClick={this.recordBotStop}
+                    ></i>
+                  )}
+                </div>
+                <button
+                  className="btn-listen"
+                  onClick={() => this.listenRecording("Bot")}
+                >
+                  Listen
+                </button>
+              </div>
+              <div className="input-text-container">
+                <div className="input-text">
+                  <textarea
+                    type="text"
+                    onChange={(e) => this.handleTextInput("Bot", e)}
+                    name="bot"
+                    maxlength="100"
+                  />
+                </div>
+                <img src={sendButton} onClick={() => this.sendData("Bot")} />
+              </div>
+            </div>
+          ) : (
+            <div className="message-container">
+              <div className="message">
+                <div className="message-text">
+                  {this.props.data.botTextInput}
+                </div>
+              </div>
+            </div>
+          )}
+          {!this.props.data.customerRecording ? (
+            <div className="input-customer-container">
+              <div className="input-audio-container">
+                <div className="input-audio-customer">
+                  {!this.state.isRecordingCustomer ? (
+                    <i
+                      className="far fa-play-circle fa-4x"
+                      onClick={this.recordCustomerStart}
+                    ></i>
+                  ) : (
+                    <i
+                      className="far fa-stop-circle fa-4x"
+                      onClick={this.recordCustomerStop}
+                    ></i>
+                  )}
+                </div>
+                <button
+                  className="btn-listen"
+                  onClick={() => this.listenRecording("Customer")}
+                >
+                  Listen
+                </button>
+              </div>
+              <div className="input-text-container">
+                <div className="input-text">
+                  <textarea
+                    type="text"
+                    onChange={(e) => this.handleTextInput("Customer", e)}
+                    name="customer"
+                    maxlength="150"
+                  />
+                </div>
+                <img
+                  src={sendButton}
+                  onClick={() => this.sendData("Customer")}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="message-container">
+              <div className="message">
+                <div className="message-text">
+                  {this.props.data.customerTextInput}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="footer-container">
+          <div className="bot-title">
+            <div>Bot</div>
+          </div>
+          <div className="delete-icon">
+            {this.props.index ? (
+              <img
+                src={deleteButton}
+                width="40px"
+                height="40px"
+                onClick={this.deleteCard}
+              />
+            ) : null}
+          </div>
+          <div className="customer-title">
+            <div>Customer</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
 
 export default Card;
