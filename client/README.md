@@ -1,5 +1,55 @@
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
 
+
+## Conversation App
+
+This app showcase the coversations between a bot and a customer.
+
+This app helps in recording the text as well as audio <br> conversation between the bot and the customer. 
+
+App can store both audio as well as the text input of the conversation and can be downloaded afterwards.
+
+The UI Interface is divided into two parts <br>
+One section contains the snippets of all the conversation between
+a bot and a customer and the second one contains the 
+panel which contains few featuers like adding a new snippet etc.
+
+To install this app simply run the following command in the terminal <br>
+
+### `npm install` 
+
+### `npm start`
+
+
+## Panel features
+
+Panel contains four buttons for the follwing functionalities<br>
+
+- Adding a new snippet. <br>
+
+- Combining the audio of all the snippets. <br>
+
+- Listening the stitched audio. <br>
+
+- Downloading the stitched audio along with the json file <br>
+  of the conversation between the bot and the customer. 
+
+
+## Instruction to use the app
+
+- Add a snippet by clicking on the add button in the app's panel
+
+- Fill the input field of bot and record the audio and repeat the same step for the customer.
+
+- Add more snippets by the following the same process.
+
+- The audio file can be stitched together by clicking on the merged button in the pannel.
+
+- Stiched audio can be listen by clicking on the listen button in the pannel
+  and can be doenled by clicking on thedownload button in panel.
+  
+
+
 Below you will find some information on how to perform common tasks.<br>
 You can find the most recent version of this guide [here](https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md).
 
